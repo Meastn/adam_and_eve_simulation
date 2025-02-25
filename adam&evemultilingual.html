@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adem ile Havva: Başlangıç</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body { 
+    display: flex; 
+    flex-direction: row; 
+    font-family: 'Roboto', sans-serif; 
+    margin: 0; 
+    padding: 20px; 
+    height: 100vh; 
+    box-sizing: border-box; 
+    overflow: hidden; 
+    background: linear-gradient(135deg, #2c3e50, #34495e); 
+    color: #ecf0f1; 
+}
+
+h1 { 
+    position: absolute; 
+    top: 20px; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    font-size: 2.5rem; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 2px; 
+    color: #e74c3c; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); 
+    margin: 0; 
+    z-index: 20; /* Haritanın üstünde kalmasını sağlar */
+}
+
+#subtitle {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    color: #7f8c8d;
+    text-align: center;
+    z-index: 20; /* Haritanın üstünde kalmasını sağlar */
+}
+
+#mainContainer { 
+    display: flex; 
+    flex: 1; 
+    width: 100%; 
+    height: calc(100vh - 100px); /* Başlık ve alt başlığın yüksekliğini (yaklaşık 100px) daha hassas hesapladık */
+    gap: 20px; 
+    margin-top: 100px; /* Başlık ve alt başlığın altına tam mesafe bırak */
+    overflow: hidden; /* Konteynır içindeki taşmaları gizle */
+}
+
+#languageSelector {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+#languageSelector select, #languageSelector button {
+    padding: 5px;
+    font-size: 1rem;
+    border-radius: 5px;
+    background: #34495e;
+    color: #ecf0f1;
+    border: none;
+    cursor: pointer;
+}
+
+#languageSelector button {
+    margin-left: 5px;
+    background: #e74c3c;
+}
+
+#languageSelector button:hover {
+    background: #c0392b;
+}
+
+#leftPanel { 
+    width: clamp(250px, 20%, 300px); 
+    padding: 15px;
+    background: rgba(44, 62, 80, 0.9); 
+    border-radius: 15px; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); 
+    overflow-y: auto; 
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#gameArea { 
+    flex: 3; 
+    position: relative; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    height: 100%; /* Tam yüksekliği kullan */
+    overflow: auto; /* Harita taşarsa kaydırılabilir yap */
+}
+
+#canvasContainer {
+    width: 100%; 
+    height: 100%; 
+    background: rgba(255, 255, 255, 0.1); 
+    border-radius: 10px; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
+    position: relative; 
+    z-index: 10; /* Harita, başlıktan altta kalacak */
+}
+
+#lastEvent {
+    position: absolute;
+    bottom: 20px; /* Alt kenardan daha geniş bir mesafe bırak */
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 1.1rem;
+    font-style: italic;
+    background: none;
+    padding: 5px 10px; /* Daha görünür yapmak için hafif padding */
+    border-radius: 5px; /* Hafif yuvarlak kenar */
+    z-index: 15; /* Haritanın üstünde, ancak başlıktan altta */
+    max-width: 90%; /* Metnin genişliğini sınırlayarak taşmayı önle */
+    text-align: center;
+    overflow: hidden; /* Metin taşarsa gizle */
+}
+
+canvas { 
+    border: 2px solid #ecf0f1; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+    border-radius: 8px; 
+}
+
+#rightPanel { 
+    width: clamp(250px, 20%, 300px); 
+    padding: 15px;
+    background: rgba(44, 62, 80, 0.9); 
+    border-radius: 15px; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    gap: 10px;
+    overflow-y: auto;
+}
+
+#settings, #info { 
+    margin-bottom: 10px;
+}
+
+#settings input[type="number"] { 
+    width: 60px; 
+    padding: 5px; 
+    border: none; 
+    border-radius: 5px; 
+    background: #34495e; 
+    color: #ecf0f1; 
+    font-size: 1rem; 
+}
+
+#settings label[for="initialPopulation"] {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+h3 { 
+    margin-bottom: 10px;
+    font-size: 1.5rem; 
+    font-weight: 500; 
+    color: #e74c3c; 
+    text-transform: uppercase; 
+}
+
+hr { 
+    margin: 10px 0;
+    border: none; 
+    border-top: 1px solid rgba(236, 240, 241, 0.3); 
+}
+
+#controls { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 8px;
+}
+
+#message { 
+    position: absolute; 
+    top: 20px; 
+    left: 20px; 
+    background: rgba(231, 76, 60, 0.9); 
+    color: #fff; 
+    padding: 10px 15px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); 
+    display: none; 
+    font-size: 1rem; 
+}
+
+#gameOverScreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(44, 62, 80, 0.95);
+    color: #ecf0f1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 30; /* Oyun bittiğinde diğer katmanların üstünde */
+    overflow: hidden;
+}
+
+#gameOverContent {
+    text-align: center;
+    max-width: 80%;
+    max-height: 80%;
+    overflow-y: auto;
+    padding: 20px;
+    background: rgba(52, 73, 94, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    gap: 10px;
+}
+
+#tribeHistory {
+    margin: 10px 0;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+#tribeNavigation {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+#restartGameOverBtn, #downloadBtn, #downloadChartBtn, #shareBtn { 
+    margin: 10px 0;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    background: #e74c3c; 
+    color: #fff; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    transition: background 0.3s ease; 
+}
+
+#restartGameOverBtn:hover, #downloadBtn:hover, #downloadChartBtn:hover, #shareBtn:hover { 
+    background: #c0392b; 
+}
+
+button, input[type="range"] { 
+    margin: 5px 0;
+}
+
+#populationChart {
+    max-width: 100%;
+    max-height: 250px;
+    margin: 10px 0;
+    background: rgba(255, 255, 251, 0.1);
+    border-radius: 10px;
+}
+
+button {
+    background: #3498db;
+    color: #fff;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+    width: 100%;
+    text-align: left;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+label {
+    font-size: 1rem;
+    margin: 5px 0;
+    display: block;
+    color: #bdc3c7;
+}
+
+.tribe-stats {
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+.tribe-stats summary {
+    font-size: 1.1rem;
+    color: #e74c3c;
+    padding: 5px 0;
+    user-select: none;
+}
+
+.tribe-stats div {
+    margin-left: 15px;
+    font-size: 0.9rem;
+    color: #ecf0f1;
+    display: none;
+}
+
+.tribe-stats.open div {
+    display: block;
+}
+
+.popup {
+    position: absolute;
+    background: rgba(52, 73, 94, 0.9);
+    color: #ecf0f1;
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 100;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.info-icon {
+    cursor: pointer;
+    color: #3498db;
+    margin-left: 5px;
+    font-size: 1rem;
+}
+
+.info-icon:hover {
+    color: #2980b9;
+}
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1 id="gameTitle">Adem ile Havva: Başlangıç</h1>
+    <div id="subtitle">Bu oyunun kodu Grok 3 kullanılarak geliştirilmiştir</div>
+    <div id="languageSelector">
+        <select id="languageSelect">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+            <option value="zh">中文</option>
+        </select>
+        <button id="applyLanguage">OK</button>
+    </div>
+    <div id="mainContainer">
+        <div id="leftPanel">
+            <h3 id="livingConditionsTitle">YAŞAM ŞARTLARI</h3>
+            <div id="stats"></div>
+            <hr>
+            <div id="tribeList"></div>
+        </div>
+        <div id="gameArea">
+            <div id="canvasContainer">
+                <canvas id="gameCanvas"></canvas>
+                <div id="message"></div>
+                <div id="lastEvent"></div>
+                <div id="gameOverScreen" style="display: none;">
+                    <div id="gameOverContent">
+                        <h2 id="tribeHistoryTitle">KABİLE TARİHÇESİ</h2>
+                        <div id="tribeHistory"></div>
+                        <div id="tribeNavigation">
+                            <button id="prevTribeBtn">←</button>
+                            <button id="nextTribeBtn">→</button>
+                        </div>
+                        <canvas id="populationChart"></canvas>
+                        <button id="downloadBtn">Günlükleri İndir</button>
+                        <button id="downloadChartBtn">Grafiği İndir</button>
+                        <button id="shareBtn">Paylaş</button>
+                        <button id="restartGameOverBtn">Yeniden Başla</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="rightPanel">
+            <div id="settings">
+                <h3 id="settingsTitle">AYARLAR</h3>
+                <label id="initialPopulationLabel">Başlangıç Nüfusu: <input type="number" id="initialPopulation" value="2" min="2" step="1" readonly><span class="info-icon" data-info="Otomatik olarak erkek ve kadın sayısının toplamıdır">ℹ</span></label>
+                <label id="initialMalesLabel">Erkek Sayısı: <input type="number" id="initialMales" value="1" min="0" step="1"><span class="info-icon" data-info="Başlangıçtaki erkek sayısı">ℹ</span></label>
+                <label id="initialFemalesLabel">Kadın Sayısı: <input type="number" id="initialFemales" value="1" min="0" step="1"><span class="info-icon" data-info="Başlangıçtaki kadın sayısı">ℹ</span></label>
+                <label id="maxTribeSizeLabel">Kabile Bölünme Eşiği: <input type="number" id="maxTribeSize" value="50" min="10" step="10"><span class="info-icon" data-info="Kabile nüfusu bu eşiği aştığında bölünme olasılığı artar">ℹ</span></label>
+                <label id="reproductionRateLabel">Üreme Oranı: <input type="number" id="reproductionRate" value="0.3" step="0.1" min="0" max="1"><span class="info-icon" data-info="Her ay üreme olasılığı (0-1 arası)">ℹ</span></label>
+                <label id="infantMortalityLabel">Bebek Ölüm Oranı: <input type="number" id="infantMortality" value="0.05" step="0.1" min="0" max="1"><span class="info-icon" data-info="Yeni doğan bebeklerin ölüm olasılığı (0-1 arası)">ℹ</span></label>
+                <label id="maternalMortalityLabel">Anne Ölüm Oranı: <input type="number" id="maternalMortality" value="0.02" step="0.01" min="0" max="1"><span class="info-icon" data-info="Doğum yapan annelerin ölüm olasılığı (0-1 arası)">ℹ</span></label>
+                <label id="scarcityThresholdLabel">Kaynak Kıtlığı Eşiği: <input type="number" id="scarcityThreshold" value="0.6" step="0.1" min="0" max="1"><span class="info-icon" data-info="Kaynaklar bu seviyenin altına düştüğünde kabile göç eder (0-1 arası)">ℹ</span></label>
+                <button id="startHumanityBtn">İNSANLIĞI BAŞLAT</button>
+            </div>
+            <div id="controls">
+                <button id="toggleGameBtn">DURAKLAT</button>
+                <button id="restartBtn">YENİDEN BAŞLA</button>
+                <button id="endBtn">SONLANDIR</button>
+                <label id="speedLabel">Hız: <input type="range" id="speedSlider" min="1" max="8" value="1" step="1"> <span id="speedValue">1x</span></label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            console.error('Canvas context alınamadı!');
+            document.body.innerHTML += '<p style="color: #e74c3c; text-align: center;">Hata: Canvas desteklenmiyor.</p>';
+            throw new Error('Canvas not supported');
+        }
+
+        // Dil verileri
+        const translations = {
+            tr: {
+                gameTitle: "Adem ile Havva: Başlangıç",
+                subtitle: "Bu oyunun kodu Grok 3 kullanılarak geliştirilmiştir",
+                livingConditionsTitle: "YAŞAM ŞARTLARI",
+                settingsTitle: "AYARLAR",
+                initialPopulationLabel: "Başlangıç Nüfusu:",
+                initialMalesLabel: "Erkek Sayısı:",
+                initialFemalesLabel: "Kadın Sayısı:",
+                maxTribeSizeLabel: "Kabile Bölünme Eşiği:",
+                reproductionRateLabel: "Üreme Oranı:",
+                infantMortalityLabel: "Bebek Ölüm Oranı:",
+                maternalMortalityLabel: "Anne Ölüm Oranı:",
+                scarcityThresholdLabel: "Kaynak Kıtlığı Eşiği:",
+                startHumanityBtn: "İNSANLIĞI BAŞLAT",
+                toggleGameBtnPause: "DURAKLAT",
+                toggleGameBtnResume: "DEVAM ET",
+                restartBtn: "YENİDEN BAŞLA",
+                endBtn: "SONLANDIR",
+                speedLabel: "Hız:",
+                tribeHistoryTitle: "KABİLE TARİHÇESİ",
+                tribesLabel: "KABİLELER",
+                allTribes: "Tüm",
+                ongoingTribes: "Devam Eden",
+                downloadLogs: "Günlükleri İndir",
+                downloadChart: "Grafiği İndir",
+                share: "Paylaş",
+                restartGameOver: "Yeniden Başla",
+                seasons: ["ilkbahar", "yaz", "sonbahar", "kış"],
+                year: "YIL",
+                month: "AY",
+                totalPopulation: "TOPLAM NÜFUS",
+                males: "Erkek Sayısı",
+                females: "Kadın Sayısı",
+                children: "Çocuk Sayısı",
+                totalBirths: "Toplam Doğum",
+                totalDeaths: "Toplam Ölüm",
+                population: "Nüfus",
+                stress: "Stres",
+                startYear: "Başlangıç",
+                tribeSplit: "Kabile ikiye ayrıldı.",
+                newTribe: "Yeni kabile oluşturuldu.",
+                birth: "{count}. kişi doğdu.",
+                maternalDeath: "1 kadın doğumda öldü.",
+                infantDeath: "1 bebek doğumda öldü.",
+                famine: "Açlık tehlikesi başladı.",
+                thirst: "Susuzluk tehlikesi başladı.",
+                overcrowding: "Aşırı kalabalık stres yarattı!",
+                lastMan: "Son erkek öldü.",
+                lastWoman: "Son kadın öldü.",
+                warWon: "Savaş kazanıldı, esirler alındı.",
+                warLost: "Savaş kaybedildi.",
+                deathsThisYear: "Bu yıl {count} kişi hayatını kaybetti (Stres: {stress}).",
+                gameOverDuration: "Oyun Süresi: {years} yıl, {months} ay",
+                gameOverTribes: "Son Kabile Sayısı: {count}",
+                gameOverPopulation: "Son TOPLAM NÜFUS: 0",
+                gameOverReason: "Yok Oluş Nedeni: {reason}",
+                chartX: "Yıl",
+                chartY: "Nüfus",
+                chartTitle: "Kabile Nüfus Dağılımı",
+                shareText: "{title} {years} YIL YAŞADI. {tribes} KABİLE. DOĞAN: {births}, ÖLEN: {deaths}."
+            },
+            en: {
+                gameTitle: "Adam and Eve: The Beginning",
+                subtitle: "This game's code was developed using Grok 3",
+                livingConditionsTitle: "LIVING CONDITIONS",
+                settingsTitle: "SETTINGS",
+                initialPopulationLabel: "Initial Population:",
+                initialMalesLabel: "Number of Males:",
+                initialFemalesLabel: "Number of Females:",
+                maxTribeSizeLabel: "Tribe Split Threshold:",
+                reproductionRateLabel: "Reproduction Rate:",
+                infantMortalityLabel: "Infant Mortality Rate:",
+                maternalMortalityLabel: "Maternal Mortality Rate:",
+                scarcityThresholdLabel: "Resource Scarcity Threshold:",
+                startHumanityBtn: "START HUMANITY",
+                toggleGameBtnPause: "PAUSE",
+                toggleGameBtnResume: "RESUME",
+                restartBtn: "RESTART",
+                endBtn: "END",
+                speedLabel: "Speed:",
+                tribeHistoryTitle: "TRIBE HISTORY",
+                tribesLabel: "TRIBES",
+                allTribes: "All",
+                ongoingTribes: "Ongoing",
+                downloadLogs: "Download Logs",
+                downloadChart: "Download Chart",
+                share: "Share",
+                restartGameOver: "Restart",
+                seasons: ["spring", "summer", "autumn", "winter"],
+                year: "YEAR",
+                month: "MONTH",
+                totalPopulation: "TOTAL POPULATION",
+                males: "Males",
+                females: "Females",
+                children: "Children",
+                totalBirths: "Total Births",
+                totalDeaths: "Total Deaths",
+                population: "Population",
+                stress: "Stress",
+                startYear: "Start",
+                tribeSplit: "The tribe has split into two.",
+                newTribe: "A new tribe has been formed.",
+                birth: "{count}. person was born.",
+                maternalDeath: "1 woman died during childbirth.",
+                infantDeath: "1 baby died at birth.",
+                famine: "Famine danger has begun.",
+                thirst: "Thirst danger has begun.",
+                overcrowding: "Overcrowding has caused stress!",
+                lastMan: "The last man has died.",
+                lastWoman: "The last woman has died.",
+                warWon: "War won, captives taken.",
+                warLost: "War lost.",
+                deathsThisYear: "This year {count} people died (Stress: {stress}).",
+                gameOverDuration: "Game Duration: {years} years, {months} months",
+                gameOverTribes: "Final Tribe Count: {count}",
+                gameOverPopulation: "Final TOTAL POPULATION: 0",
+                gameOverReason: "Reason for Extinction: {reason}",
+                chartX: "Year",
+                chartY: "Population",
+                chartTitle: "Tribe Population Distribution",
+                shareText: "{title} LIVED FOR {years} YEARS. {tribes} TRIBES. BORN: {births}, DIED: {deaths}."
+            },
+            ar: {
+                gameTitle: "آدم وحواء: البداية",
+                subtitle: "تم تطوير كود هذه اللعبة باستخدام Grok 3",
+                livingConditionsTitle: "ظروف المعيشة",
+                settingsTitle: "الإعدادات",
+                initialPopulationLabel: "السكان الأوائل:",
+                initialMalesLabel: "عدد الذكور:",
+                initialFemalesLabel: "عدد الإناث:",
+                maxTribeSizeLabel: "عتبة انقسام القبيلة:",
+                reproductionRateLabel: "معدل التكاثر:",
+                infantMortalityLabel: "معدل وفيات الرضع:",
+                maternalMortalityLabel: "معدل وفيات الأمهات:",
+                scarcityThresholdLabel: "عتبة ندرة الموارد:",
+                startHumanityBtn: "بدء البشرية",
+                toggleGameBtnPause: "إيقاف",
+                toggleGameBtnResume: "استئناف",
+                restartBtn: "إعادة تشغيل",
+                endBtn: "إنهاء",
+                speedLabel: "السرعة:",
+                tribeHistoryTitle: "تاريخ القبيلة",
+                tribesLabel: "القبائل",
+                allTribes: "الكل",
+                ongoingTribes: "مستمر",
+                downloadLogs: "تنزيل السجلات",
+                downloadChart: "تنزيل الرسم البياني",
+                share: "مشاركة",
+                restartGameOver: "إعادة تشغيل",
+                seasons: ["الربيع", "الصيف", "الخريف", "الشتاء"],
+                year: "سنة",
+                month: "شهر",
+                totalPopulation: "إجمالي السكان",
+                males: "الذكور",
+                females: "الإناث",
+                children: "الأطفال",
+                totalBirths: "إجمالي المواليد",
+                totalDeaths: "إجمالي الوفيات",
+                population: "السكان",
+                stress: "الإجهاد",
+                startYear: "البداية",
+                tribeSplit: "انقسمت القبيلة إلى اثنتين.",
+                newTribe: "تم تشكيل قبيلة جديدة.",
+                birth: "ولد الشخص {count}.",
+                maternalDeath: "توفيت امرأة واحدة أثناء الولادة.",
+                infantDeath: "توفي طفل واحد عند الولادة.",
+                famine: "بدأ خطر المجاعة.",
+                thirst: "بدأ خطر العطش.",
+                overcrowding: "التكدس الزائد تسبب في الإجهاد!",
+                lastMan: "مات آخر رجل.",
+                lastWoman: "ماتت آخر امرأة.",
+                warWon: "تم الفوز بالحرب، وأُخذ الأسرى.",
+                warLost: "خسرت الحرب.",
+                deathsThisYear: "هذا العام توفي {count} شخص (الإجهاد: {stress}).",
+                gameOverDuration: "مدة اللعبة: {years} سنة، {months} شهر",
+                gameOverTribes: "عدد القبائل النهائي: {count}",
+                gameOverPopulation: "إجمالي السكان النهائي: 0",
+                gameOverReason: "سبب الانقراض: {reason}",
+                chartX: "سنة",
+                chartY: "السكان",
+                chartTitle: "توزيع سكان القبيلة",
+                shareText: "{title} عاشت {years} سنة. {tribes} قبائل. المواليد: {births}، الوفيات: {deaths}."
+            },
+            zh: {
+                gameTitle: "亚当与夏娃：开始",
+                subtitle: "此游戏代码使用Grok 3开发",
+                livingConditionsTitle: "生活条件",
+                settingsTitle: "设置",
+                initialPopulationLabel: "初始人口：",
+                initialMalesLabel: "男性数量：",
+                initialFemalesLabel: "女性数量：",
+                maxTribeSizeLabel: "部落分裂阈值：",
+                reproductionRateLabel: "繁殖率：",
+                infantMortalityLabel: "婴儿死亡率：",
+                maternalMortalityLabel: "产妇死亡率：",
+                scarcityThresholdLabel: "资源稀缺阈值：",
+                startHumanityBtn: "启动人类",
+                toggleGameBtnPause: "暂停",
+                toggleGameBtnResume: "继续",
+                restartBtn: "重新开始",
+                endBtn: "结束",
+                speedLabel: "速度：",
+                tribeHistoryTitle: "部落历史",
+                tribesLabel: "部落",
+                allTribes: "全部",
+                ongoingTribes: "进行中",
+                downloadLogs: "下载日志",
+                downloadChart: "下载图表",
+                share: "分享",
+                restartGameOver: "重新开始",
+                seasons: ["春天", "夏天", "秋天", "冬天"],
+                year: "年",
+                month: "月",
+                totalPopulation: "总人口",
+                males: "男性",
+                females: "女性",
+                children: "儿童",
+                totalBirths: "总出生",
+                totalDeaths: "总死亡",
+                population: "人口",
+                stress: "压力",
+                startYear: "开始",
+                tribeSplit: "部落分裂成两个。",
+                newTribe: "一个新的部落形成了。",
+                birth: "第{count}人出生。",
+                maternalDeath: "1名妇女在分娩时死亡。",
+                infantDeath: "1名婴儿在出生时死亡。",
+                famine: "饥荒危险开始。",
+                thirst: "口渴危险开始。",
+                overcrowding: "过度拥挤造成了压力！",
+                lastMan: "最后一个男人死了。",
+                lastWoman: "最后一个女人死了。",
+                warWon: "战争胜利，俘虏被带走。",
+                warLost: "战争失败。",
+                deathsThisYear: "今年有{count}人死亡（压力：{stress}）。",
+                gameOverDuration: "游戏持续时间：{years}年，{months}月",
+                gameOverTribes: "最终部落数量：{count}",
+                gameOverPopulation: "最终总人口：0",
+                gameOverReason: "灭绝原因：{reason}",
+                chartX: "年",
+                chartY: "人口",
+                chartTitle: "部落人口分布",
+                shareText: "{title}生存了{years}年。{tribes}个部落。出生：{births}，死亡：{deaths}。"
+            }
+        };
+
+        let currentLang = 'tr';
+
+        function updateLanguage() {
+            const lang = document.getElementById('languageSelect').value;
+            currentLang = lang;
+            const t = translations[lang];
+
+            document.getElementById('gameTitle').textContent = t.gameTitle;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('livingConditionsTitle').textContent = t.livingConditionsTitle;
+            document.getElementById('settingsTitle').textContent = t.settingsTitle;
+            document.getElementById('initialPopulationLabel').firstChild.textContent = t.initialPopulationLabel + " ";
+            document.getElementById('initialMalesLabel').firstChild.textContent = t.initialMalesLabel + " ";
+            document.getElementById('initialFemalesLabel').firstChild.textContent = t.initialFemalesLabel + " ";
+            document.getElementById('maxTribeSizeLabel').firstChild.textContent = t.maxTribeSizeLabel + " ";
+            document.getElementById('reproductionRateLabel').firstChild.textContent = t.reproductionRateLabel + " ";
+            document.getElementById('infantMortalityLabel').firstChild.textContent = t.infantMortalityLabel + " ";
+            document.getElementById('maternalMortalityLabel').firstChild.textContent = t.maternalMortalityLabel + " ";
+            document.getElementById('scarcityThresholdLabel').firstChild.textContent = t.scarcityThresholdLabel + " ";
+            document.getElementById('startHumanityBtn').textContent = t.startHumanityBtn;
+            document.getElementById('toggleGameBtn').textContent = isRunning ? t.toggleGameBtnPause : t.toggleGameBtnResume;
+            document.getElementById('restartBtn').textContent = t.restartBtn;
+            document.getElementById('endBtn').textContent = t.endBtn;
+            document.getElementById('speedLabel').firstChild.textContent = t.speedLabel + " ";
+            document.getElementById('tribeList').querySelector('h3').textContent = t.tribesLabel;
+
+            updateStats();
+            if (gameOver) showGameOver();
+        }
+
+        let GRID_SIZE, COLS, ROWS;
+        let world, tribes, year, month, season;
+        let isRunning = false;
+        let gameOver = false;
+        let tribeHistories = [];
+        let currentTribeIndex = 0;
+        let graves = [];
+        let populationHistory = [];
+        let tribeCounter = 1;
+        let birthTotal = 0;
+        let deathTotal = 0;
+        let initialPopulation = 0;
+        let lastEvent = '';
+
+        let settings = {
+            initialPopulation: 2,
+            initialMales: 1,
+            initialFemales: 1,
+            maxTribeSize: 50,
+            reproductionRate: 0.3,
+            infantMortality: 0.05,
+            maternalMortality: 0.02,
+            scarcityThreshold: 0.6
+        };
+
+        const TERRAIN_COLORS = {
+            'çayır': '#27ae60', 'orman': '#16a085', 'su': '#3498db',
+            'dağ': '#7f8c8d', 'çöl': '#f1c40f', 'kıyı': '#e67e22',
+            'tundra': '#95a5a6'
+        };
+
+        const BRIGHT_COLORS = [
+            '#e74c3c', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6',
+            '#e67e22', '#1abc9c', '#d35400', '#8e44ad', '#2980b9',
+            '#c0392b', '#16a085', '#f39c12', '#7f8c8d', '#27ae60'
+        ];
+
+        const CONSONANT_VOWEL_SYLLABLES = [
+            'ba', 'be', 'bi', 'bo', 'bu',
+            'ka', 'ke', 'ki', 'ko', 'ku',
+            'ta', 'te', 'ti', 'to', 'tu',
+            'da', 'de', 'di', 'do', 'du',
+            'ga', 'ge', 'gi', 'go', 'gu',
+            'pa', 'pe', 'pi', 'po', 'pu',
+            'sa', 'se', 'si', 'so', 'su',
+            'ma', 'me', 'mi', 'mo', 'mu',
+            'na', 'ne', 'ni', 'no', 'nu',
+            'la', 'le', 'li', 'lo', 'lu'
+        ];
+
+        const VOWEL_CONSONANT_SYLLABLES = [
+            'ab', 'eb', 'ib', 'ob', 'ub',
+            'ak', 'ek', 'ik', 'ok', 'uk',
+            'at', 'et', 'it', 'ot', 'ut',
+            'ad', 'ed', 'id', 'od', 'ud',
+            'ag', 'eg', 'ig', 'og', 'ug',
+            'ap', 'ep', 'ip', 'op', 'up',
+            'as', 'es', 'is', 'os', 'us',
+            'am', 'em', 'im', 'om', 'um',
+            'an', 'en', 'in', 'on', 'un',
+            'al', 'el', 'il', 'ol', 'ul'
+        ];
+
+        let usedTribeNames = [];
+
+        function generateTribeName() {
+            const syllableCount = Math.random() < 0.5 ? 2 : 3;
+            let name = '';
+            for (let i = 0; i < syllableCount; i++) {
+                const syllables = i % 2 === 0 ? CONSONANT_VOWEL_SYLLABLES : VOWEL_CONSONANT_SYLLABLES;
+                name += syllables[Math.floor(Math.random() * syllables.length)];
+            }
+            name = name.charAt(0).toUpperCase() + name.slice(1);
+            if (usedTribeNames.includes(name)) return generateTribeName();
+            usedTribeNames.push(name);
+            return name;
+        }
+
+        function getPluralSuffix(name) {
+            if (currentLang !== 'tr') return '';
+            const lastChar = name.slice(-1).toLowerCase();
+            const vowels = ['a', 'ı', 'o', 'u', 'e', 'i', 'ö', 'ü'];
+            return vowels.includes(lastChar) ? 
+                (['a', 'ı', 'o', 'u'].includes(lastChar) ? 'lar' : 'ler') : 
+                'lar';
+        }
+
+        function updateInitialPopulation() {
+            const males = parseInt(document.getElementById('initialMales').value) || 0;
+            const females = parseInt(document.getElementById('initialFemales').value) || 0;
+            const total = Math.max(2, males + females);
+            document.getElementById('initialPopulation').value = total;
+            settings.initialPopulation = total;
+            settings.initialMales = males;
+            settings.initialFemales = females;
+            initialPopulation = total;
+        }
+
+        function resizeCanvas() {
+            const aspectRatio = 4 / 3;
+            const container = document.getElementById('canvasContainer');
+            const maxWidth = container.clientWidth;
+            const maxHeight = container.clientHeight;
+
+            let width = maxWidth;
+            let height = width / aspectRatio;
+
+            if (height > maxHeight) {
+                height = maxHeight;
+                width = height * aspectRatio;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            GRID_SIZE = Math.max(8, Math.floor(canvas.width / 64));
+            COLS = Math.floor(canvas.width / GRID_SIZE);
+            ROWS = Math.floor(canvas.height / GRID_SIZE);
+
+            if (COLS <= 0 || ROWS <= 0) {
+                console.error('Invalid canvas dimensions:', { width, height, COLS, ROWS });
+                throw new Error('Canvas dimensions too small');
+            }
+        }
+
+        function noise(x, y, scale) {
+            return (Math.sin(x * scale + y) + Math.cos(y * scale + x) + 2) / 4;
+        }
+
+        class Tile {
+            constructor(type) {
+                this.type = type;
+                this.food = this.getInitialFood();
+                this.water = this.getInitialWater();
+            }
+            getInitialFood() {
+                return { 'orman': 100, 'çayır': 50, 'kıyı': 30, 'tundra': 20 }[this.type] || 0;
+            }
+            getInitialWater() {
+                return { 'su': 100, 'kıyı': 50, 'çayır': 25, 'orman': 15, 'tundra': 10 }[this.type] || 0;
+            }
+            updateResources() {
+                switch (season) {
+                    case translations[currentLang].seasons[0]:
+                        this.food = Math.min(this.food + 2, this.getInitialFood());
+                        this.water = Math.min(this.water + 2, this.getInitialWater());
+                        break;
+                    case translations[currentLang].seasons[1]:
+                        this.food = Math.min(this.food + 1, this.getInitialFood());
+                        this.water = Math.max(this.water - 1, 0);
+                        break;
+                    case translations[currentLang].seasons[2]:
+                        this.food = Math.max(this.food - 1, 0);
+                        this.water = Math.min(this.water + 1, this.getInitialWater());
+                        break;
+                    case translations[currentLang].seasons[3]:
+                        this.food = Math.max(this.food - 2, 0);
+                        this.water = Math.max(this.water - 1, 0);
+                        break;
+                }
+            }
+        }
+
+        class World {
+            constructor() {
+                if (!COLS || !ROWS) {
+                    throw new Error('World cannot be initialized before canvas dimensions are set');
+                }
+                this.grid = [];
+                this.generateTerrain();
+            }
+            generateTerrain() {
+                this.grid = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+                for (let y = 0; y < ROWS; y++) {
+                    for (let x = 0; x < COLS; x++) {
+                        const elevation = noise(x / 10, y / 10, 0.1);
+                        const moisture = noise(x / 15 + 100, y / 15 + 100, 0.1);
+                        this.grid[y][x] = new Tile(
+                            elevation > 0.8 ? 'dağ' :
+                            elevation < 0.2 ? 'su' :
+                            moisture > 0.7 && elevation > 0.3 ? 'orman' :
+                            moisture < 0.3 ? 'çöl' :
+                            moisture > 0.5 && elevation < 0.4 ? 'kıyı' :
+                            elevation > 0.6 && moisture < 0.5 ? 'tundra' :
+                            'çayır'
+                        );
+                    }
+                }
+                this.createRivers();
+                this.createLakes();
+            }
+            createRivers() {
+                for (let i = 0; i < 3; i++) {
+                    let x = Math.floor(Math.random() * COLS);
+                    let y = 0;
+                    while (y < ROWS) {
+                        this.grid[y][x] = new Tile('su');
+                        y++;
+                        if (Math.random() < 0.3) x = Math.max(0, Math.min(COLS - 1, x + Math.floor(Math.random() * 3) - 1));
+                    }
+                }
+            }
+            createLakes() {
+                for (let i = 0; i < 5; i++) {
+                    let centerX = Math.floor(Math.random() * COLS);
+                    let centerY = Math.floor(Math.random() * ROWS);
+                    let radius = Math.floor(Math.random() * 5) + 3;
+                    for (let y = Math.max(0, centerY - radius); y <= Math.min(ROWS - 1, centerY + radius); y++) {
+                        for (let x = Math.max(0, centerX - radius); x <= Math.min(COLS - 1, centerX + radius); x++) {
+                            if (Math.random() < 0.7) this.grid[y][x] = new Tile('su');
+                        }
+                    }
+                }
+            }
+            getTile(x, y) {
+                return (x >= 0 && x < COLS && y >= 0 && y < ROWS) ? this.grid[y][x] : new Tile('su');
+            }
+            updateResources() {
+                this.grid.forEach(row => row.forEach(tile => tile.updateResources()));
+            }
+            findLandTileNear(x, y) {
+                const nearby = [];
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const newX = Math.max(0, Math.min(COLS - 1, x + dx));
+                        const newY = Math.max(0, Math.min(ROWS - 1, y + dy));
+                        if (this.grid[newY][newX].type !== 'su' && this.grid[newY][newX].type !== 'dağ') {
+                            nearby.push({ x: newX, y: newY });
+                        }
+                    }
+                }
+                return nearby.length > 0 ? nearby[Math.floor(Math.random() * nearby.length)] : this.findLandTile();
+            }
+            findLandTileAtLeast10Away(x, y) {
+                let attempts = 0;
+                while (attempts++ < 100) {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const distance = 10 + Math.random() * 5;
+                    const newX = Math.floor(Math.max(0, Math.min(COLS - 1, x + Math.cos(angle) * distance)));
+                    const newY = Math.floor(Math.max(0, Math.min(ROWS - 1, y + Math.sin(angle) * distance)));
+                    if (Math.abs(newX - x) >= 10 && Math.abs(newY - y) >= 10 && 
+                        this.grid[newY][newX].type !== 'su' && this.grid[newY][newX].type !== 'dağ') {
+                        return { x: newX, y: newY };
+                    }
+                }
+                return this.findLandTile();
+            }
+            findLandTile() {
+                let attempts = 0;
+                while (attempts++ < 100) {
+                    const x = Math.floor(Math.random() * COLS);
+                    const y = Math.floor(Math.random() * ROWS);
+                    if (this.grid[y][x].type !== 'su' && this.grid[y][x].type !== 'dağ') return { x, y };
+                }
+                return { x: Math.floor(COLS / 2), y: Math.floor(ROWS / 2) };
+            }
+            ensureWithinBounds(x, y) {
+                return {
+                    x: Math.max(0, Math.min(COLS - 1, x)),
+                    y: Math.max(0, Math.min(ROWS - 1, y))
+                };
+            }
+        }
+
+        class Human {
+            constructor(gender, age = 0, mother = null, tribe) {
+                this.gender = gender;
+                this.age = age;
+                this.health = 100;
+                this.lastBirthYear = -3;
+                this.mother = mother;
+                this.tribe = tribe;
+            }
+            canReproduce() {
+                return this.gender === 'female' && this.age >= 16 && this.age <= 40 && (year - this.lastBirthYear >= 3);
+            }
+            update(stress) {
+                const prevAge = this.age;
+                this.age += 1 / 12;
+                this.health -= 0.5 + (stress > 50 ? 0.5 : 0);
+                if (this.age > 40) {
+                    const deathChance = (this.age - 40) / 100 * (1 + stress / 100);
+                    if (Math.random() < deathChance) {
+                        if (this.tribe && this.age < 12) {
+                            this.tribe.childCount--;
+                            updateStats();
+                        }
+                        return false;
+                    }
+                }
+                if (this.tribe && prevAge < 12 && this.age >= 12) {
+                    this.tribe.childCount--;
+                    updateStats();
+                }
+                return !(this.age >= 80 || this.health <= 0 || Math.random() < 0.0005);
+            }
+        }
+
+        class Grave {
+            constructor(x, y, tribe) {
+                this.x = x;
+                this.y = y;
+                this.startYear = tribe.startYear || 0;
+                this.endYear = year;
+                this.maxPopulation = tribe.maxPopulation || tribe.members.length;
+                this.name = tribe.name;
+                this.extinctionReason = tribe.extinctionReason || translations[currentLang].gameOverReason.replace('{reason}', 'Unknown reason');
+            }
+        }
+
+        class Tribe {
+            constructor(x, y, playerControlled = false) {
+                this.x = x;
+                this.y = y;
+                this.members = [];
+                this.color = BRIGHT_COLORS[(tribeCounter - 1) % BRIGHT_COLORS.length];
+                this.playerControlled = playerControlled;
+                this.battleExperience = 0;
+                this.stress = 0;
+                this.lastSplitYear = -5;
+                this.startYear = year || 0;
+                this.maxPopulation = 0;
+                this.populationData = [{ year: this.startYear, population: 0 }];
+                this.birthCount = 0;
+                this.currentYearDeaths = 0;
+                this.childCount = 0;
+                this.id = this.generateId();
+                this.name = generateTribeName();
+                this.extinctionReason = null;
+                this.canReproduce = false; // Üreme durumu izlenecek
+            }
+            generateId() {
+                const seasonCode = { [translations[currentLang].seasons[0]]: 'I', [translations[currentLang].seasons[1]]: 'Y', [translations[currentLang].seasons[2]]: 'S', [translations[currentLang].seasons[3]]: 'K' }[season] || 'I';
+                return `K-${seasonCode}-${String(year || 0).padStart(2, '0')}-${String(tribeCounter++).padStart(2, '0')}`;
+            }
+            logEvent(event) {
+                let history = tribeHistories.find(h => h.tribe === this) || { tribe: this, events: [] };
+                if (!tribeHistories.includes(history)) tribeHistories.push(history);
+                history.events.push(`${year}. ${translations[currentLang].year} ${season} ${translations[currentLang].month}: ${event}`);
+                lastEvent = `${this.name}: ${event}`;
+                updateLastEvent();
+            }
+            addMember(human) {
+                this.members.push(human);
+                human.tribe = this;
+                if (human.age < 12) this.childCount++;
+                if (this.playerControlled && this.members.length >= 2) {
+                    this.logEvent(`${human.gender === 'male' ? translations[currentLang].males : translations[currentLang].females} ${translations[currentLang].population}: ${human.age.toFixed(1)}`);
+                }
+                if (this.members.length > initialPopulation) {
+                    birthTotal++;
+                    this.birthCount++;
+                }
+                this.updateReproductionStatus();
+            }
+            updateReproductionStatus() {
+                const males = this.members.filter(m => m.gender === 'male' && m.age >= 16).length;
+                const females = this.members.filter(m => m.gender === 'female' && m.age >= 16 && m.canReproduce()).length;
+                this.canReproduce = males > 0 && females > 0;
+            }
+            evaluateSplit() {
+                if (this.members.length <= settings.maxTribeSize || year - this.lastSplitYear < 5) return false;
+                const stressFactor = this.stress <= 20 ? 1.0 : this.stress <= 80 ? 0.5 : 0.1;
+                const genderBalance = this.members.length > 0 ? Math.min(1.2, Math.max(0.8, this.members.filter(m => m.gender === 'male').length / this.members.filter(m => m.gender === 'female').length)) : 1.0;
+                const resourceAbundance = this.calculateResourceAbundance();
+                return Math.random() < 0.1 * stressFactor * genderBalance * resourceAbundance;
+            }
+            calculateResourceAbundance() {
+                const tile = world.getTile(this.x, this.y);
+                const foodRatio = tile.food / tile.getInitialFood();
+                const waterRatio = tile.water / tile.getInitialWater();
+                return Math.min(1.0, Math.max(0.3, (foodRatio + waterRatio) / 2 / 0.6));
+            }
+            update() {
+                if (this.members.length === 0) {
+                    this.endTribe();
+                    return;
+                }
+
+                this.maxPopulation = Math.max(this.maxPopulation, this.members.length);
+                const tile = world.getTile(this.x, this.y);
+                const foodNeeded = this.members.length * 0.5;
+                const waterNeeded = this.members.length * 0.5;
+                const prevPop = this.members.length;
+
+                if (tile.food >= foodNeeded && tile.water >= waterNeeded) {
+                    tile.food -= foodNeeded;
+                    tile.water -= waterNeeded;
+                    this.stress = Math.max(0, this.stress - 5);
+                } else {
+                    this.stress += (tile.food < foodNeeded ? 10 : 0) + (tile.water < waterNeeded ? 10 : 0);
+                    this.members.forEach(m => m.health -= (tile.food < foodNeeded || tile.water < waterNeeded) ? 5 : 0);
+                    if (tile.food < foodNeeded * 0.5) this.logEvent(translations[currentLang].famine);
+                    if (tile.water < waterNeeded * 0.5) this.logEvent(translations[currentLang].thirst);
+                }
+
+                const overPopulationThreshold = settings.maxTribeSize * 1.5;
+                if (this.members.length > overPopulationThreshold) {
+                    this.stress += (this.members.length - overPopulationThreshold) * 0.2;
+                    if (this.stress >= 80 && Math.random() < 0.1) {
+                        this.logEvent(translations[currentLang].overcrowding);
+                    }
+                }
+
+                this.childCount = this.members.filter(m => m.age < 12).length;
+
+                const aliveMembers = this.members.filter(human => human.update(this.stress));
+                const deadCount = prevPop - aliveMembers.length;
+                this.currentYearDeaths += deadCount;
+                deathTotal += deadCount;
+
+                this.members = aliveMembers;
+                this.childCount = this.members.filter(m => m.age < 12).length;
+
+                if (month === 11 && this.currentYearDeaths >= 5) {
+                    this.logEvent(translations[currentLang].deathsThisYear.replace('{count}', this.currentYearDeaths).replace('{stress}', this.stress.toFixed(1)));
+                    this.currentYearDeaths = 0;
+                }
+
+                this.updateReproductionStatus();
+
+                if (prevPop > this.members.length) {
+                    if (this.members.length === 1) {
+                        const lastMember = this.members[0];
+                        if (lastMember.gender === 'male' && this.members.every(m => m.gender !== 'female')) {
+                            this.logEvent(translations[currentLang].lastMan);
+                            this.extinctionReason = translations[currentLang].lastMan;
+                            this.endTribeAfterLastDeath();
+                        } else if (lastMember.gender === 'female' && this.members.every(m => m.gender !== 'male')) {
+                            this.logEvent(translations[currentLang].lastWoman);
+                            this.extinctionReason = translations[currentLang].lastWoman;
+                            this.endTribeAfterLastDeath();
+                        }
+                    } else if (this.members.length === 0) {
+                        this.endTribe();
+                    } else if (this.stress >= 100) {
+                        this.extinctionReason = translations[currentLang].gameOverReason.replace('{reason}', 'Extreme stress and resource scarcity');
+                        this.endTribe();
+                    }
+                }
+
+                this.stress = Math.min(100, Math.max(0, this.stress));
+                this.populationData.push({ year: year + month / 12, population: this.members.length });
+                
+                if (this.canReproduce) {
+                    this.reproduce();
+                }
+                this.journeyForResources();
+                this.checkSplit();
+            }
+            endTribeAfterLastDeath() {
+                // Son bireyin ölümünü beklemek için bir gecikme simüle edebiliriz, ancak burada doğrudan sonlandırma yapıyoruz
+                this.members.forEach(member => {
+                    if (!member.update(this.stress)) {
+                        this.members = this.members.filter(m => m !== member);
+                        if (this.members.length === 0) {
+                            this.endTribe();
+                        }
+                    }
+                });
+            }
+            endTribe() {
+                if (!this.extinctionReason) this.extinctionReason = translations[currentLang].gameOverReason.replace('{reason}', 'Unknown reason');
+                graves.push(new Grave(this.x, this.y, this));
+                populationHistory.push({ id: this.id, data: this.populationData });
+                tribes = tribes.filter(t => t !== this);
+                if (tribes.length === 0) {
+                    gameOver = true;
+                    showGameOver();
+                }
+                updateStats();
+            }
+            checkSplit() {
+                if (!this.evaluateSplit() || !this.canReproduce) return;
+                const nearbyPosition = world.findLandTileNear(this.x, this.y);
+                const newTribe = new Tribe(nearbyPosition.x, nearbyPosition.y);
+                const splitMembers = this.members.splice(0, Math.floor(this.members.length / 2));
+                splitMembers.forEach(member => newTribe.addMember(member));
+                const farPosition = world.findLandTileAtLeast10Away(nearbyPosition.x, nearbyPosition.y);
+                newTribe.x = farPosition.x;
+                newTribe.y = farPosition.y;
+                tribes.push(newTribe);
+                this.logEvent(translations[currentLang].tribeSplit);
+                newTribe.logEvent(translations[currentLang].newTribe);
+                showMessage(translations[currentLang].tribeSplit);
+                this.childCount = this.members.filter(m => m.age < 12).length;
+                newTribe.childCount = newTribe.members.filter(m => m.age < 12).length;
+                this.updateReproductionStatus();
+                newTribe.updateReproductionStatus();
+            }
+            reproduce() {
+                const females = this.members.filter(h => h.canReproduce() && this.stress < 80);
+                const males = this.members.filter(h => h.gender === 'male' && h.age >= 16);
+                if (males.length === 0 || females.length === 0) return;
+
+                females.forEach(female => {
+                    const eligibleMales = males.filter(male => male.mother !== female);
+                    if (eligibleMales.length === 0) return;
+
+                    if (Math.random() < settings.reproductionRate * (1 - this.stress / 100)) {
+                        const baby = new Human(Math.random() < 0.5 ? 'male' : 'female', 0, female, this);
+                        if (Math.random() < settings.maternalMortality) {
+                            this.members = this.members.filter(m => m !== female);
+                            this.currentYearDeaths++;
+                            this.logEvent(translations[currentLang].maternalDeath);
+                            deathTotal++;
+                        } else {
+                            female.lastBirthYear = year;
+                            this.birthCount++;
+                            birthTotal++;
+                            if (Math.random() < settings.infantMortality) {
+                                deathTotal++;
+                                this.logEvent(translations[currentLang].infantDeath);
+                            } else {
+                                this.members.push(baby);
+                                this.childCount++;
+                                this.logEvent(translations[currentLang].birth.replace('{count}', this.birthCount));
+                            }
+                        }
+                    }
+                });
+
+                this.childCount = this.members.filter(m => m.age < 12).length;
+                this.updateReproductionStatus();
+                updateStats();
+            }
+            journeyForResources() {
+                const tile = world.getTile(this.x, this.y);
+                const resourceLevel = (tile.food / tile.getInitialFood() + tile.water / tile.getInitialWater()) / 2;
+                if (resourceLevel >= settings.scarcityThreshold && Math.random() >= 0.3) return;
+
+                let bestTile = null;
+                let bestScore = -1;
+                for (let dy = -5; dy <= 5; dy++) {
+                    for (let dx = -5; dx <= 5; dx++) {
+                        const newX = Math.max(0, Math.min(COLS - 1, this.x + dx));
+                        const newY = Math.max(0, Math.min(ROWS - 1, this.y + dy));
+                        const candidate = world.getTile(newX, newY);
+                        if (candidate.type !== 'su' && candidate.type !== 'dağ') {
+                            const score = candidate.food + candidate.water;
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestTile = { x: newX, y: newY };
+                            }
+                        }
+                    }
+                }
+                if (bestTile) {
+                    this.x = bestTile.x;
+                    this.y = bestTile.y;
+                }
+            }
+            battle(otherTribe) {
+                const thisStrength = this.members.filter(m => m.gender === 'male' && m.age >= 16).length * (1 + this.battleExperience / 10);
+                const otherStrength = otherTribe.members.filter(m => m.gender === 'male' && m.age >= 16).length * (1 + otherTribe.battleExperience / 10);
+                
+                if (thisStrength > otherStrength) {
+                    this.battleExperience++;
+                    const captured = otherTribe.members.filter(m => m.gender === 'female' && m.age >= 16);
+                    this.members.push(...captured);
+                    otherTribe.members = otherTribe.members.filter(m => m.gender === 'female' && m.age < 16);
+                    this.logEvent(translations[currentLang].warWon);
+                    this.childCount = this.members.filter(m => m.age < 12).length;
+                    otherTribe.childCount = otherTribe.members.filter(m => m.age < 12).length;
+                    this.updateReproductionStatus();
+                    otherTribe.updateReproductionStatus();
+                    return true;
+                } else {
+                    otherTribe.battleExperience++;
+                    const lostMen = Math.floor(this.members.filter(m => m.gender === 'male' && m.age >= 16).length * 0.5);
+                    this.members = this.members.filter(m => !(m.gender === 'male' && m.age >= 16 && Math.random() < 0.5));
+                    this.logEvent(translations[currentLang].warLost);
+                    deathTotal += lostMen;
+                    this.childCount = this.members.filter(m => m.age < 12).length;
+                    this.updateReproductionStatus();
+                    return false;
+                }
+            }
+            getMoodEmoji() {
+                return this.stress <= 20 ? '😊' : this.stress <= 50 ? '😐' : this.stress <= 80 ? '😟' : '😢';
+            }
+        }
+
+        function initGame() {
+            resizeCanvas();
+            world = new World();
+            tribes = [];
+            tribeHistories = [];
+            graves = [];
+            populationHistory = [];
+            tribeCounter = 1;
+            usedTribeNames = [];
+            currentTribeIndex = 0;
+            birthTotal = 0;
+            deathTotal = 0;
+            lastEvent = '';
+
+            const totalPop = Math.max(2, settings.initialMales + settings.initialFemales);
+            settings.initialPopulation = totalPop;
+            initialPopulation = totalPop;
+
+            const playerTribe = new Tribe(Math.floor(COLS / 2), Math.floor(ROWS / 2), true);
+            for (let i = 0; i < settings.initialMales; i++) playerTribe.addMember(new Human('male', 16 + Math.random() * 4, null, playerTribe));
+            for (let i = 0; i < settings.initialFemales; i++) playerTribe.addMember(new Human('female', 16 + Math.random() * 4, null, playerTribe));
+            tribes.push(playerTribe);
+            tribeHistories.push({ tribe: playerTribe, events: [] });
+
+            year = 0;
+            month = 0;
+            season = translations[currentLang].seasons[0];
+            gameOver = false;
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('lastEvent').style.display = 'block';
+            
+            renderGame();
+            updateStats();
+            document.getElementById('toggleGameBtn').textContent = translations[currentLang].toggleGameBtnPause;
+            isRunning = true;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateGame() {
+            if (gameOver) return;
+
+            month++;
+            if (month === 12) {
+                year++;
+                month = 0;
+            }
+            season = translations[currentLang].seasons[Math.floor(month / 3)];
+
+            world.updateResources();
+            tribes.forEach(tribe => tribe.update());
+
+            updateStats();
+        }
+
+        function renderGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    ctx.fillStyle = TERRAIN_COLORS[world.getTile(x, y).type];
+                    ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+                }
+            }
+
+            graves.forEach(grave => {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(grave.x * GRID_SIZE, grave.y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+                ctx.fillStyle = '#000';
+                ctx.font = `${Math.min(GRID_SIZE, 14)}px Roboto`;
+                ctx.textAlign = 'center';
+                ctx.fillText('R.I.P', grave.x * GRID_SIZE + GRID_SIZE / 2, grave.y * GRID_SIZE + GRID_SIZE / 2 + GRID_SIZE / 4);
+            });
+
+            tribes.forEach(tribe => {
+                ctx.strokeStyle = tribe.color;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(tribe.x * GRID_SIZE, tribe.y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+                ctx.fillStyle = '#fff';
+                ctx.font = `${Math.min(GRID_SIZE, 18)}px Roboto`;
+                ctx.textAlign = 'center';
+                ctx.fillText(tribe.getMoodEmoji(), tribe.x * GRID_SIZE + GRID_SIZE / 2, tribe.y * GRID_SIZE + GRID_SIZE / 2 + GRID_SIZE / 4);
+            });
+            updateLastEvent();
+        }
+
+        function updateLastEvent() {
+            const lastEventDiv = document.getElementById('lastEvent');
+            if (lastEvent) {
+                lastEventDiv.textContent = lastEvent;
+                lastEventDiv.style.display = 'block';
+            } else {
+                lastEventDiv.style.display = 'none';
+            }
+        }
+
+        let chartInstance = null;
+        function showGameOver() {
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            gameOverScreen.style.display = 'flex';
+            const content = document.getElementById('gameOverContent');
+            const t = translations[currentLang];
+            const report = [
+                t.gameOverDuration.replace('{years}', year).replace('{months}', month),
+                t.gameOverTribes.replace('{count}', tribes.length),
+                t.gameOverPopulation,
+                t.gameOverReason.replace('{reason}', tribeHistories[currentTribeIndex]?.tribe.extinctionReason || 'All tribes extinct')
+            ];
+
+            content.innerHTML = `
+                <h2 id="tribeTitle">${tribeHistories[currentTribeIndex]?.tribe.name || t.tribeHistoryTitle}</h2>
+                <div id="tribeHistory">${report.join('<br>')}<br>${generateEpicHistory(tribeHistories[currentTribeIndex] || { tribe: {}, events: [] })}</div>
+                <div id="tribeNavigation">
+                    <button id="prevTribeBtn">←</button>
+                    <button id="nextTribeBtn">→</button>
+                </div>
+                <canvas id="populationChart"></canvas>
+                <button id="downloadBtn">${t.downloadLogs}</button>
+                <button id="downloadChartBtn">${t.downloadChart}</button>
+                <button id="shareBtn">${t.share}</button>
+                <button id="restartGameOverBtn">${t.restartGameOver}</button>
+            `;
+
+            const prevBtn = document.getElementById('prevTribeBtn');
+            const nextBtn = document.getElementById('nextTribeBtn');
+            prevBtn.style.display = tribeHistories.length > 1 ? 'inline' : 'none';
+            nextBtn.style.display = tribeHistories.length > 1 ? 'inline' : 'none';
+            prevBtn.onclick = () => currentTribeIndex > 0 && (currentTribeIndex--, updateTribeHistory());
+            nextBtn.onclick = () => currentTribeIndex < tribeHistories.length - 1 && (currentTribeIndex++, updateTribeHistory());
+
+            const chartCanvas = document.getElementById('populationChart');
+            if (chartInstance) chartInstance.destroy();
+
+            const allTribes = [...populationHistory, ...tribes.map(t => ({ id: t.id, data: t.populationData }))];
+            const years = Array.from({ length: Math.ceil(year + 1) }, (_, i) => i);
+            const datasets = allTribes.map((tribeData, i) => ({
+                label: tribeHistories[i]?.tribe.name || `Tribe ${i + 1}`,
+                data: years.map(y => tribeData.data.find(d => Math.floor(d.year) === y)?.population || 0),
+                borderColor: tribeHistories[i]?.tribe.color || BRIGHT_COLORS[i % BRIGHT_COLORS.length],
+                fill: false,
+                tension: 0.1
+            }));
+
+            chartInstance = new Chart(chartCanvas, {
+                type: 'line',
+                data: { labels: years, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: t.chartX, color: '#ecf0f1' }, ticks: { color: '#ecf0f1' } },
+                        y: { title: { display: true, text: t.chartY, color: '#ecf0f1' }, ticks: { color: '#ecf0f1' }, beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { display: true, labels: { color: '#ecf0f1' } },
+                        title: { display: true, text: t.chartTitle, color: '#e74c3c', font: { size: 18 } }
+                    }
+                }
+            });
+
+            document.getElementById('restartGameOverBtn').onclick = restartGame;
+            document.getElementById('downloadBtn').onclick = downloadLogs;
+            document.getElementById('downloadChartBtn').onclick = downloadChart;
+            document.getElementById('shareBtn').onclick = shareResults;
+            pauseGame();
+        }
+
+        function generateEpicHistory(history) {
+            const tribe = history.tribe;
+            const t = translations[currentLang];
+            let epic = `${tribe.name || 'Unnamed Tribe'} emerged. `;
+            const events = history.events || [];
+            if (!events.length) return epic + "However, their history was short-lived.";
+
+            const firstBirth = events.find(e => e.includes(t.birth.split('{count}')[1]));
+            if (firstBirth) epic += `Their first child was born in ${firstBirth.split(':')[0].split(t.year)[1].trim()}. `;
+
+            let [birthCount, splitCount, warWins, warLosses, famineCount] = [0, 0, 0, 0, 0];
+            let lastMan = false;
+            events.forEach(event => {
+                if (event.includes(t.birth.split('{count}')[1])) birthCount++;
+                else if (event.includes(t.tribeSplit)) splitCount++;
+                else if (event.includes(t.warWon)) warWins++;
+                else if (event.includes(t.warLost)) warLosses++;
+                else if (event.includes(t.famine)) famineCount++;
+                else if (event.includes(t.lastMan)) lastMan = true;
+            });
+
+            if (birthCount) epic += `${birthCount} generations were born and raised. `;
+            if (splitCount) epic += `The tribe split ${splitCount} times. `;
+            if (warWins) epic += `They won ${warWins} wars. `;
+            if (warLosses) epic += `They lost ${warLosses} wars. `;
+            if (famineCount) epic += `They faced famine ${famineCount} times. `;
+            if (lastMan) epic += "The tribe ended with the death of the last man. ";
+
+            const endYear = graves.find(g => g.x === tribe.x && g.y === tribe.y)?.endYear || year;
+            return epic + `This saga ended in the year ${endYear}.`;
+        }
+
+        function downloadLogs() {
+            const logContent = tribeHistories.map(h => `${h.tribe.id} - ${h.tribe.name}\n${h.events.join('\n')}`).join('\n\n');
+            const blob = new Blob([`${translations[currentLang].tribeHistoryTitle}\n\n${logContent}`], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tribe_history.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadChart() {
+            const url = chartInstance.toBase64Image();
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tribe_population_chart.png';
+            a.click();
+        }
+
+        function shareResults() {
+            const t = translations[currentLang];
+            const summary = t.shareText
+                .replace('{title}', t.gameTitle)
+                .replace('{years}', year)
+                .replace('{tribes}', tribeHistories.length)
+                .replace('{births}', birthTotal)
+                .replace('{deaths}', deathTotal);
+            navigator.clipboard.writeText(summary).then(() => alert('Results copied to clipboard!'));
+        }
+
+        function updateTribeHistory() {
+            const tribeHistoryDiv = document.getElementById('tribeHistory');
+            const tribeTitle = document.getElementById('tribeTitle');
+            const history = tribeHistories[currentTribeIndex];
+            const t = translations[currentLang];
+            if (history) {
+                const report = [
+                    t.gameOverDuration.replace('{years}', year).replace('{months}', month),
+                    t.gameOverTribes.replace('{count}', tribes.length),
+                    t.gameOverPopulation,
+                    t.gameOverReason.replace('{reason}', history.tribe.extinctionReason || 'All tribes extinct')
+                ];
+                tribeTitle.textContent = history.tribe.name;
+                tribeHistoryDiv.innerHTML = report.join('<br>') + '<br>' + generateEpicHistory(history);
+            }
+        }
+
+        function updateStats() {
+            const statsDiv = document.getElementById('stats');
+            const tribeListDiv = document.getElementById('tribeList');
+            const t = translations[currentLang];
+            const totalPopulation = tribes.reduce((sum, tribe) => sum + tribe.members.length, 0);
+            const malePopulation = tribes.reduce((sum, tribe) => sum + tribe.members.filter(m => m.gender === 'male' && m.age >= 16).length, 0);
+            const femalePopulation = tribes.reduce((sum, tribe) => sum + tribe.members.filter(m => m.gender === 'female' && m.age >= 16).length, 0);
+            const childPopulation = tribes.reduce((sum, tribe) => sum + tribe.members.filter(m => m.age < 12).length, 0);
+
+         statsDiv.innerHTML = `
+    <div><strong>${year}. ${t.year} ${month}. ${t.month}</strong></div>
+    <div>${season.toUpperCase()} ${t.month}</div>
+    <div><strong>${t.totalPopulation}: ${totalPopulation}</strong></div>
+    <div>${t.males}: ${malePopulation}</div>
+    <div>${t.females}: ${femalePopulation}</div>
+    <div>${t.children}: ${childPopulation}</div>
+    <div>${t.totalBirths}: ${birthTotal}</div>
+    <div>${t.totalDeaths}: ${deathTotal}</div>
+`;
+                    const existingStats = tribeListDiv.querySelectorAll('.tribe-stats');
+        const openStates = new Map();
+        existingStats.forEach(stat => {
+            openStates.set(stat.getAttribute('data-tribe-id'), stat.classList.contains('open'));
+        });
+
+        tribeListDiv.innerHTML = `
+            <h3>${t.tribesLabel}</h3>
+            <div>${t.allTribes}: ${tribes.length + graves.length} ${t.ongoingTribes}: ${tribes.length}</div>
+        ` + tribes.map(tribe => `
+            <div class="tribe-stats" data-tribe-id="${tribe.id}">
+                <summary style="color: ${tribe.color}">${tribe.name}${getPluralSuffix(tribe.name)} (${tribe.members.length} ${t.population})</summary>
+                <div>
+                    ${t.population}: ${tribe.members.length}<br>
+                    ${t.males}: ${tribe.members.filter(m => m.gender === 'male' && m.age >= 16).length}<br>
+                    ${t.females}: ${tribe.members.filter(m => m.gender === 'female' && m.age >= 16).length}<br>
+                    ${t.children}: ${tribe.members.filter(m => m.age < 12).length}<br>
+                    ${t.totalBirths}: ${tribe.birthCount}<br>
+                    ${t.totalDeaths}: ${deathTotal}<br>
+                    ${t.stress}: ${tribe.stress.toFixed(1)}<br>
+                    ${t.startYear}: ${tribe.startYear}
+                </div>
+            </div>
+        `).join('');
+
+        const newStats = tribeListDiv.querySelectorAll('.tribe-stats');
+        newStats.forEach(stat => {
+            const tribeId = stat.getAttribute('data-tribe-id');
+            if (openStates.get(tribeId)) stat.classList.add('open');
+            const summary = stat.querySelector('summary');
+            summary.onclick = (e) => {
+                e.preventDefault();
+                stat.classList.toggle('open');
+            };
+        });
+    }
+
+    let lastTime = 0;
+    function gameLoop(timestamp) {
+        if (!isRunning || gameOver) return;
+        const speedMultiplier = parseInt(document.getElementById('speedSlider').value);
+        if ((timestamp - lastTime) >= 1000 / speedMultiplier) {
+            updateGame();
+            renderGame();
+            lastTime = timestamp;
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    function toggleGame() {
+        if (gameOver) return;
+        isRunning = !isRunning;
+        document.getElementById('toggleGameBtn').textContent = isRunning ? translations[currentLang].toggleGameBtnPause : translations[currentLang].toggleGameBtnResume;
+        if (isRunning) requestAnimationFrame(gameLoop);
+    }
+
+    function pauseGame() {
+        isRunning = false;
+        document.getElementById('toggleGameBtn').textContent = translations[currentLang].toggleGameBtnResume;
+    }
+
+    function restartGame() {
+        pauseGame();
+        initGame();
+        document.getElementById('gameOverScreen').style.display = 'none';
+    }
+
+    function endGame() {
+        pauseGame();
+        gameOver = true;
+        showGameOver();
+    }
+
+    function updateSpeed() {
+        document.getElementById('speedValue').textContent = `${document.getElementById('speedSlider').value}x`;
+    }
+
+    function applySettingsAndStart() {
+        settings = {
+            initialPopulation: parseInt(document.getElementById('initialPopulation').value) || 2,
+            initialMales: parseInt(document.getElementById('initialMales').value) || 1,
+            initialFemales: parseInt(document.getElementById('initialFemales').value) || 1,
+            maxTribeSize: parseInt(document.getElementById('maxTribeSize').value) || 50,
+            reproductionRate: Math.min(1, Math.max(0, parseFloat(document.getElementById('reproductionRate').value) || 0.3)),
+            infantMortality: Math.min(1, Math.max(0, parseFloat(document.getElementById('infantMortality').value) || 0.05)),
+            maternalMortality: Math.min(1, Math.max(0, parseFloat(document.getElementById('maternalMortality').value) || 0.02)),
+            scarcityThreshold: Math.min(1, Math.max(0, parseFloat(document.getElementById('scarcityThreshold').value) || 0.6))
+        };
+        settings.initialPopulation = Math.max(2, settings.initialMales + settings.initialFemales);
+        initialPopulation = settings.initialPopulation;
+        initGame();
+    }
+
+    document.getElementById('initialMales').addEventListener('input', updateInitialPopulation);
+    document.getElementById('initialFemales').addEventListener('input', updateInitialPopulation);
+
+    function showMessage(text) {
+        const message = document.getElementById('message');
+        message.textContent = text;
+        message.style.display = 'block';
+        setTimeout(() => message.style.display = 'none', 2000);
+    }
+
+    canvas.addEventListener('click', e => {
+        if (gameOver) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width) / GRID_SIZE);
+        const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height) / GRID_SIZE);
+        const playerTribe = tribes.find(t => t.playerControlled);
+        if (playerTribe) {
+            const pos = world.ensureWithinBounds(x, y);
+            playerTribe.x = pos.x;
+            playerTribe.y = pos.y;
+            renderGame();
+        }
+    });
+
+    canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) * (canvas.width / rect.width) / GRID_SIZE);
+        const y = Math.floor((e.clientY - rect.top) * (canvas.height / rect.height) / GRID_SIZE);
+        
+        document.querySelectorAll('.popup').forEach(p => p.remove());
+        
+        const tribe = tribes.find(t => t.x === x && t.y === y);
+        const grave = graves.find(g => g.x === x && g.y === y);
+        if (!tribe && !grave) return;
+
+        const t = translations[currentLang];
+        const popup = document.createElement('div');
+        popup.className = 'popup';
+        popup.style.left = `${e.clientX + 15}px`;
+        popup.style.top = `${e.clientY + 15}px`;
+        popup.innerHTML = tribe ? `
+            <strong>${tribe.name}</strong><br>
+            ${t.population}: ${tribe.members.length}<br>
+            ${t.males}: ${tribe.members.filter(m => m.gender === 'male' && m.age >= 16).length}<br>
+            ${t.females}: ${tribe.members.filter(m => m.gender === 'female' && m.age >= 16).length}<br>
+            ${t.children}: ${tribe.members.filter(m => m.age < 12).length}<br>
+            ${t.stress}: ${tribe.stress.toFixed(1)}<br>
+            ${t.startYear}: ${tribe.startYear}
+        ` : `
+            <strong>${grave.name}</strong><br>
+            ${t.startYear}: ${grave.startYear}<br>
+            ${tribes.length === 0 ? 'End' : 'Bitiş'}: ${grave.endYear}<br>
+            Max ${t.population}: ${grave.maxPopulation}
+        `;
+        document.body.appendChild(popup);
+        setTimeout(() => popup.remove(), 2000);
+    });
+
+    document.getElementById('startHumanityBtn').addEventListener('click', applySettingsAndStart);
+    document.getElementById('toggleGameBtn').addEventListener('click', toggleGame);
+    document.getElementById('restartBtn').addEventListener('click', restartGame);
+    document.getElementById('endBtn').addEventListener('click', endGame);
+    document.getElementById('speedSlider').addEventListener('input', updateSpeed);
+    window.addEventListener('resize', () => { resizeCanvas(); if (world) renderGame(); });
+    document.getElementById('applyLanguage').addEventListener('click', updateLanguage);
+
+    document.querySelectorAll('.info-icon').forEach(icon => {
+        icon.addEventListener('click', e => {
+            const info = e.target.getAttribute('data-info');
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.style.left = `${e.clientX + 15}px`;
+            popup.style.top = `${e.clientY + 15}px`;
+            popup.textContent = info;
+            document.body.appendChild(popup);
+            setTimeout(() => popup.remove(), 3000);
+        });
+    });
+
+    try {
+        initGame();
+    } catch (e) {
+        console.error('Game initialization failed:', e);
+        alert('Oyun başlatılamadı. Konsolu kontrol edin.');
+    }
+</script>
